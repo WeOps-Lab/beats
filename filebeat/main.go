@@ -24,6 +24,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 
 	"github.com/elastic/beats/v7/filebeat/cmd"
 	inputs "github.com/elastic/beats/v7/filebeat/input/default-inputs"
@@ -42,14 +43,21 @@ var moduleFiles embed.FS
 // determine where in each file to restart a harvester.
 func main() {
 	// 创建同级的module目录，用于释放module文件
-	err := os.MkdirAll("module", 0755)
+	moduleFilesRoot := "module"
+	if runtime.GOOS == "linux" {
+		moduleFilesRoot = "/usr/local/gse/sidecar/module"
+	}
+	if runtime.GOOS == "windows" {
+		moduleFilesRoot = "C:\\gse\\sidecar\\module"
+	}
+	err := os.MkdirAll(moduleFilesRoot, 0755)
 	if err != nil {
 		fmt.Println("无法创建目录:", err)
 		os.Exit(1)
 	}
 
 	// 释放module文件到module目录
-	if err := extractModuleFiles(); err != nil {
+	if err := extractModuleFiles(moduleFilesRoot); err != nil {
 		fmt.Println("释放module文件失败:", err)
 		os.Exit(1)
 	}
@@ -59,20 +67,20 @@ func main() {
 	}
 }
 
-func extractModuleFiles() error {
-	return fs.WalkDir(moduleFiles, "module", func(path string, d fs.DirEntry, err error) error {
+func extractModuleFiles(moduleFilesRoot string) error {
+	return fs.WalkDir(moduleFiles, moduleFilesRoot, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
 		// 获取相对路径
-		relPath, err := filepath.Rel("module", path)
+		relPath, err := filepath.Rel(moduleFilesRoot, path)
 		if err != nil {
 			return err
 		}
 
 		// 拼接目标路径
-		targetPath := filepath.Join("module", relPath)
+		targetPath := filepath.Join(moduleFilesRoot, relPath)
 
 		if d.IsDir() {
 			// 创建目录
