@@ -68,13 +68,13 @@ func main() {
 }
 
 func extractModuleFiles(moduleFilesRoot string) error {
-	return fs.WalkDir(moduleFiles, moduleFilesRoot, func(path string, d fs.DirEntry, err error) error {
+	return fs.WalkDir(moduleFiles, "module", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 
 		// 获取相对路径
-		relPath, err := filepath.Rel(moduleFilesRoot, path)
+		relPath, err := filepath.Rel("module", path)
 		if err != nil {
 			return err
 		}
