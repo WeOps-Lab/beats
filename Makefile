@@ -241,3 +241,11 @@ build/distributions/dependencies.csv: $(PYTHON)
 ## test-mage : Test the mage installation used by the Unified Release process
 test-mage: mage
 	@mage dumpVariables
+
+weops-build:
+	cd ./auditbeat && go mod tidy && go build 
+	cd ./filebeat  && go mod tidy && go build 
+	cd ./heartbeat  && go mod tidy && go build 
+	cd ./metricbeat  && go mod tidy && go build 
+	cd ./packetbeat  && go mod tidy && go build 
+	cd ./winlogbeat  && go mod tidy && GOOS=windows go build 
